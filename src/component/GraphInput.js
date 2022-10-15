@@ -5,7 +5,7 @@ let GraphInput = (props) => {
     let style = {
         ...props.style, ...{
             display: "grid",
-            gridTemplateRows: "1fr 10fr 3fr"
+            gridTemplateRows: "2fr 6fr 6fr"
         }
     }
 
@@ -17,16 +17,24 @@ let GraphInput = (props) => {
         gridRows: "3/4",
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        columnGap: "10px"
+        gridTemplateRows: "1fr 1fr 4fr",
+        columnGap: "10px",
+        padding: "10px"
     }
 
     let inputStyle = {
-        overflow: "scroll",
+        overflow: "auto",
+        height: "400px",
+        border: "black solid 1px",
+        margin: "10px",
+        // position: "fixed",
+        // top: 0,
+        // bottom: 0
     }
 
     let inputBoxStyle = {
         display: "grid",
-        gridTemplateColumns: "2fr 1fr 2fr",
+        gridTemplateColumns: "3fr 1fr 3fr",
         width: "100%",
         height: "9%",
         height: "20px",
@@ -60,25 +68,53 @@ let GraphInput = (props) => {
         justifySelf: "center",
     }
 
+    let controlButtonSytle = {
+        height: "30px",
+    }
+
+    let symbol = (props.isBidirectional) ? "<->" : "->"
+
+    let conditionalRender = (edges) => {
+        if (edges.length == 0){
+            return (
+                <div style={{padding:"20px", textAlign: "center"}}>click add button or upload a file</div>
+            )
+        } else {
+            let dom = edges.map((e, idx) => {
+                let pf = e.from == "" ? "from" : e.from
+                let pt = e.to == "" ? "to" : e.to
+                return (
+                    <div key={`${idx}`} style={inputBoxStyle}>
+                        <input className={`f${idx}`} onChange={props.handleWriteEdge} style={fromInputBoxStyle} placeholder={pf}></input>
+                        <p style={toTextStyle}>{symbol}</p>
+                        <input className={`t${idx}`} onChange={props.handleWriteEdge} style={toInputBoxStyle} placeholder={pt}></input>
+                    </div>
+                )
+            })
+
+            return dom
+        }
+    }
+
     return (
         <div style={style}>
-            <div style={{ textAlign: "center", width: "100%", ...textStyle }}>please enter your graph</div>
-            <div style={inputStyle}>
-                {props.edges.map((e, idx) => {
-                    return (
-                        <div key={`${idx}`} style={inputBoxStyle}>
-                            <input className={`f${idx}`} onChange={props.handleWriteEdge} style={fromInputBoxStyle} placeholder="from"></input>
-                            <p style={toTextStyle}>to </p>
-                            <input className={`t${idx}`} onChange={props.handleWriteEdge} style={toInputBoxStyle} placeholder="to"></input>
-                        </div>
-                    )
-                })}
+            <div style={{ textAlign: "center", width: "100%", ...textStyle }}>
+                <div>please enter your graph</div>
+                <br/>
+                <input checked={props.isWeighted} onChange={props.handleWeighted} type="checkbox" id="isWeighted" name="isWeighted" value="on"></input>
+                <label htmlFor="isWeighted">weighted graph</label><br/>
+                <input onChange={props.handleBidirectional} checked={props.isBidirectional} type="checkbox" id="isBidrectional" name="isBidirectional" value="on"></input>
+                <label htmlFor="isBidirectional">bidirectional</label><br/>
+            </div>
+            <div style={inputStyle} id="inputGraph">
+                {conditionalRender(props.edges)}
             </div>
             <div style={buttonStyle}>
-                <button style={{ height: "30px" }} onClick={props.handleAddEdge}>add</button>
-                <button style={{ height: "30px" }} onClick={props.handleCreateGraph}>create</button>
-                <button style={{ height: "30px" }} onClick={props.handleDeleteEdge}>delete</button>
-                <button style={{ height: "30px" }} onClick={props.handleStart}>start</button>
+                <input onChange={props.handleFile} type="file" style={{width: "100%", gridColumn: "1/3"}}></input>
+                <button style={controlButtonSytle} onClick={props.handleAddEdge}>add</button>
+                <button style={controlButtonSytle} onClick={props.handleCreateGraph}>create</button>
+                <button style={controlButtonSytle} onClick={props.handleDeleteEdge}>delete</button>
+                <button style={controlButtonSytle} onClick={props.handleStart}>start</button>
             </div>
         </div>
     )

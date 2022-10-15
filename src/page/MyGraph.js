@@ -1,7 +1,4 @@
-import React, { Component, useEffect, useState } from "react";
-// import "./MyGraph.css";
-// import Graph from "react-graph-vis";
-// import background3 from "./background3.jpeg";
+import React from "react";
 import GraphInput from "../component/GraphInput";
 import GraphAlgorithm from "../component/GraphAlgorithm";
 import Graph from "../component/Graph";
@@ -22,12 +19,13 @@ class MyGraph extends React.Component {
 
     this.graphInputSytle = {
       gridColumn: "1/2",
-      gridRow: "2/3"
+      gridRow: "1/3"
     }
 
     this.graphAlgorithmStyle = {
-      gridColumn: "1/3",
-      gridRow: "1/2"
+      gridColumn: "2/3",
+      gridRow: "1/2",
+      alignSelf: "center"
     }
 
     this.state = {
@@ -36,8 +34,9 @@ class MyGraph extends React.Component {
         edges: []
       },
       edges: [],
-      isValid: false
-
+      isValid: false,
+      isWeighted: false,
+      isBidirectional: false,
     }
   }
 
@@ -151,6 +150,10 @@ class MyGraph extends React.Component {
     let edges = structuredClone(this.state.edges)
     edges = [...edges, { to: "", from: "" }]
     await this.setState({ edges })
+
+    let dom = document.getElementById("inputGraph")
+    console.log(dom);
+    dom.scrollTop = dom.scrollHeight
   }
 
   handleDeleteEdge = async (e) => {
@@ -182,13 +185,20 @@ class MyGraph extends React.Component {
 
   handleCreateGraph = async (e) => {
     e.preventDefault()
-    console.log(this.state.edges);
     let edges = structuredClone(this.state.edges)
     let nodes = this.createNode(edges)
 
     let graph = structuredClone(this.state.graph)
     graph.nodes = nodes
-    graph.edges = edges
+    
+    let biEdges = structuredClone(edges)
+    if (this.state.isBidirectional){
+      for (let i=0; i<edges.length; i++){
+        let newEdge = {from: edges[i].to, to: edges[i].from}
+        biEdges.push(newEdge)
+      }
+    }
+    graph.edges = (this.state.isBidirectional) ? biEdges : edges
 
     await this.setState({graph})
     console.log(this.state.graph);
@@ -204,11 +214,68 @@ class MyGraph extends React.Component {
     await this.setState({graph})
   }
 
+  handleWeighted = async (e) => {
+    let isWeighted = e.target.checked
+    await this.setState({isWeighted})
+  }
+
+  handleBidirectional = async (e) => {
+    let isBidirectional = e.target.checked
+    await this.setState({isBidirectional})
+  }
+
+  readFile = async (file) => {
+    let reader = new FileReader()
+    reader.onload = async (e) => {
+      let doc = e.target.result
+      let lines = doc.split("\n")
+      let edges = []
+
+      for(let i=0; i<lines.length; i++){
+        let l = lines[i]
+        let data = l.split(' ')
+        if (i==0) {
+          let isWeighted = data[0] == '1' ? true : false
+          await this.setState({isWeighted})
+          continue
+        }
+
+        if (i==1){
+          let isBidirectional = data[0] == '1' ? true : false
+          await this.setState({isBidirectional})
+          continue
+        }
+
+        let f = data[0]
+        let t = data[1]
+
+        edges.push({from:f, to:t})
+      }
+
+      await this.setState({edges})
+    }
+
+    reader.readAsText(file)
+  }
+
+  handleFile = async (e) => {
+    e.preventDefault()
+    await this.setState({edges:[]})
+    let file = e.target.files[0]
+    if (file.type != "text/plain"){
+      alert("please use txt file")
+      return
+    }
+    this.readFile(file)
+    e.target.value = null
+  }
+
+
 
   render() {
     return (
       <div style={this.style}>
-        <Graph style={{}} graph={this.state.graph}></Graph>
+        <Graph graph={this.state.graph}></Graph>
         <GraphInput
           style={this.graphInputSytle}
           edges={this.state.edges}
@@ -217,16 +284,14 @@ class MyGraph extends React.Component {
           handleWriteEdge={this.handleWriteEdge}
           handleCreateGraph={this.handleCreateGraph}
           handleStart={this.handleStart}
+          handleWeighted={this.handleWeighted}
+          handleBidirectional={this.handleBidirectional}
+          isBidirectional={this.state.isBidirectional}
+          isWeighted={this.state.isWeighted}
+          handleFile={this.handleFile}
         ></GraphInput>
         <GraphAlgorithm style={this.graphAlgorithmStyle}></GraphAlgorithm>
       </div>
-      // <Graph
-      //   // style={{backgroundColor: "black"}}
-      //   graph={this.state.graph}
-      //   options={this.options}
-      // ></Graph>
-      // <div>
-      // </div>
     )
   }
 }
