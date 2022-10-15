@@ -1,11 +1,13 @@
-import { Component, useEffect, useState } from "react";
-import "./MyGraph.css";
-import Graph from "react-graph-vis";
-import background3 from "./background3.jpeg";
+import React, { Component, useEffect, useState } from "react";
+// import "./MyGraph.css";
+import RGraph from "react-graph-vis";
+// import background3 from "./background3.jpeg";
+// import GraphInput from "../component/graphInput";
+// import GraphAlgorithm from "../component/graphAlgorithm";
 
-let MyGraph = (props) => {
-  const [graph, setGraph] = useState(
-    {
+
+let Graph = (props)=> {
+    let graph = {
       nodes: [
         {
           id: 1, label: "Node 1", title: "node 1 tootip text",
@@ -77,48 +79,35 @@ let MyGraph = (props) => {
         { from: 4, to: 1 },
       ]
     }
-  )
-  const [options, setOptions] = useState(
-    {
+
+    let options = {
       layout: {
         improvedLayout: true,
         hierarchical: {
-          enabled: false
+          enabled: false,
+          nodeSpacing: 200,
         },
-        nodeSpacing: 100
       },
       edges: {
         color: "#000000"
       },
-      autoResize: true,
-      height: "100000px",
+      // autoResize: true,
+      height: "100%",
       physics: {
-        "stabilization": true
+        stabilization: {
+          // enabled: true,
+          // iterations: 10,
+        }
       }
-      // width: "1000px"
     }
-  )
 
-
-  useEffect(() => {
-  }, [])
-
-
-  let style = {
-    height: "100vh",
-    width: "100vw",
-    border: "solid black 2px"
-  }
-
-  return (
-    // <textarea value={options.edges.color}></textarea>
-    <div style={style}>
-      <Graph
-        graph={graph}
+    return (
+      <RGraph
+        style={props.style}
+        graph={props.graph}
         options={options}
-      ></Graph>
-    </div>
-  )
+      ></RGraph>
+    )
 }
 
-export default MyGraph
+export default Graph
