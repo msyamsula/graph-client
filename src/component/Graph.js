@@ -9,7 +9,7 @@ import RGraph from "react-graph-vis";
 let Graph = (props)=> {
     let options = {
       layout: {
-        improvedLayout: true,
+        // improvedLayout: true,
         hierarchical: {
           enabled: false,
           nodeSpacing: 200,
@@ -21,10 +21,10 @@ let Graph = (props)=> {
       // autoResize: true,
       height: "100%",
       physics: {
-        stabilization: {
-          enabled: true,
-          iterations: 5,
-        }
+        // stabilization: {
+          // enabled: true,
+          // iterations: 5,
+        // }
       }
     }
 

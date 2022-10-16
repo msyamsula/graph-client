@@ -37,13 +37,16 @@ class MyGraph extends React.Component {
       isValid: false,
       isWeighted: false,
       isBidirectional: false,
+      algo: null,
+      startNode: null,
+      endNode: null
     }
   }
 
   createNode = (edges) => {
     let nodes = new Map()
 
-    for (let i=0; i<edges.length; i++){
+    for (let i = 0; i < edges.length; i++) {
       nodes.set(edges[i].to, true)
       nodes.set(edges[i].from, true)
     }
@@ -51,7 +54,8 @@ class MyGraph extends React.Component {
     for (let [key, value] of nodes) {
       let n = {
         id: key,
-        label: key
+        label: key,
+        color: null,
       }
       graphNodes.push(n)
     }
@@ -176,11 +180,11 @@ class MyGraph extends React.Component {
 
     if (type == 'f') {
       edges[idx].from = value
-    } else if (type == 't'){
+    } else if (type == 't') {
       edges[idx].to = value
     }
 
-    await this.setState({edges})
+    await this.setState({ edges })
   }
 
   handleCreateGraph = async (e) => {
@@ -190,38 +194,91 @@ class MyGraph extends React.Component {
 
     let graph = structuredClone(this.state.graph)
     graph.nodes = nodes
-    
+
     let biEdges = structuredClone(edges)
-    if (this.state.isBidirectional){
-      for (let i=0; i<edges.length; i++){
-        let newEdge = {from: edges[i].to, to: edges[i].from}
+    if (this.state.isBidirectional) {
+      for (let i = 0; i < edges.length; i++) {
+        let newEdge = { from: edges[i].to, to: edges[i].from }
         biEdges.push(newEdge)
       }
     }
     graph.edges = (this.state.isBidirectional) ? biEdges : edges
 
-    await this.setState({graph})
-    console.log(this.state.graph);
+    await this.setState({ graph })
+  }
+
+  coloringNode = async (id, color) => {
+    let graph = structuredClone(this.state.graph)
+
+    for (let i = 0; i < graph.nodes.length; i++) {
+      if (graph.nodes[i].id == id) {
+        graph.nodes[i].color = {
+          background: color
+        }
+      }
+    }
+    
+    await this.setState({ graph })
+  }
+
+  coloringEdge = async (from, to, color) => {
+    let graph = structuredClone(this.state.graph)
+
+    for (let i = 0; i < graph.edges.length; i++) {
+      if (graph.edges[i].from == from && graph.edges[i].to == to) {
+        graph.edges[i].color = {
+          color
+        }
+        graph.edges[i].width = 2
+      }
+
+      if (this.state.isBidirectional && graph.edges[i].from == to && graph.edges[i].to == from) {
+        graph.edges[i].color = {
+          color
+        }
+        graph.edges[i].width = 2
+      }
+    }
+    await this.setState({ graph })
+
   }
 
   handleStart = async (e) => {
     e.preventDefault()
+    // alert("pleae double check your graph and algo")
 
-    let graph = structuredClone(this.state.graph)
-    graph.nodes[0].color = "purple"
-    graph.nodes[1].color = "red"
+    // console.log(this.state.graph);
+    // console.log(this.state.startNode);
+    // console.log(this.state.endNode);
+    // console.log(this.state.algo);
 
-    await this.setState({graph})
+    let path = ["2", "3", "4", "1", "3", "5", "6", "11", "12", "10"]
+    await this.coloringNode(path[0], "red")
+    // await this.coloringEdge(path[0], path[1], "red")
+
+    let timer = (ms) => new Promise(res => setTimeout(res, ms))
+
+    let run = async () => {
+      for (let i = 1; i < path.length; i++) {
+        await timer(1000)
+        await this.coloringEdge(path[i - 1], path[i], "red")
+        await timer(1000)
+        await this.coloringNode(path[i], "red")
+
+      }
+    }
+
+    await run()
   }
 
   handleWeighted = async (e) => {
     let isWeighted = e.target.checked
-    await this.setState({isWeighted})
+    await this.setState({ isWeighted })
   }
 
   handleBidirectional = async (e) => {
     let isBidirectional = e.target.checked
-    await this.setState({isBidirectional})
+    await this.setState({ isBidirectional })
   }
 
   readFile = async (file) => {
@@ -231,28 +288,28 @@ class MyGraph extends React.Component {
       let lines = doc.split("\n")
       let edges = []
 
-      for(let i=0; i<lines.length; i++){
+      for (let i = 0; i < lines.length; i++) {
         let l = lines[i]
         let data = l.split(' ')
-        if (i==0) {
+        if (i == 0) {
           let isWeighted = data[0] == '1' ? true : false
-          await this.setState({isWeighted})
+          await this.setState({ isWeighted })
           continue
         }
 
-        if (i==1){
+        if (i == 1) {
           let isBidirectional = data[0] == '1' ? true : false
-          await this.setState({isBidirectional})
+          await this.setState({ isBidirectional })
           continue
         }
 
         let f = data[0]
         let t = data[1]
 
-        edges.push({from:f, to:t})
+        edges.push({ from: f, to: t })
       }
 
-      await this.setState({edges})
+      await this.setState({ edges })
     }
 
     reader.readAsText(file)
@@ -260,14 +317,36 @@ class MyGraph extends React.Component {
 
   handleFile = async (e) => {
     e.preventDefault()
-    await this.setState({edges:[]})
+    await this.setState({ edges: [] })
     let file = e.target.files[0]
-    if (file.type != "text/plain"){
+    if (file.type != "text/plain") {
       alert("please use txt file")
       return
     }
     this.readFile(file)
     e.target.value = null
+  }
+
+  handleBFS = async (e) => {
+    e.preventDefault()
+    await this.setState({ algo: "bfs" })
+  }
+
+  handleDFS = async (e) => {
+    e.preventDefault()
+    await this.setState({ algo: "dfs" })
+  }
+
+  handleStartNode = async (e) => {
+    e.preventDefault()
+    let startNode = e.target.value
+    await this.setState({ startNode })
+  }
+
+  handleEndNode = async (e) => {
+    e.preventDefault()
+    let endNode = e.target.value
+    await this.setState({ endNode })
   }
 
 
@@ -290,7 +369,14 @@ class MyGraph extends React.Component {
           isWeighted={this.state.isWeighted}
           handleFile={this.handleFile}
         ></GraphInput>
-        <GraphAlgorithm style={this.graphAlgorithmStyle}></GraphAlgorithm>
+        <GraphAlgorithm
+          style={this.graphAlgorithmStyle}
+          handleDFS={this.handleDFS}
+          handleBFS={this.handleBFS}
+          algo={this.state.algo}
+          handleEndNode={this.handleEndNode}
+          handleStartNode={this.handleStartNode}
+        ></GraphAlgorithm>
       </div>
     )
   }

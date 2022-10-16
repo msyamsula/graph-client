@@ -101,8 +101,8 @@ let GraphInput = (props) => {
             <div style={{ textAlign: "center", width: "100%", ...textStyle }}>
                 <div>please enter your graph</div>
                 <br/>
-                <input checked={props.isWeighted} onChange={props.handleWeighted} type="checkbox" id="isWeighted" name="isWeighted" value="on"></input>
-                <label htmlFor="isWeighted">weighted graph</label><br/>
+                {/* <input checked={props.isWeighted} onChange={props.handleWeighted} type="checkbox" id="isWeighted" name="isWeighted" value="on"></input> */}
+                {/* <label htmlFor="isWeighted">weighted graph</label><br/> */}
                 <input onChange={props.handleBidirectional} checked={props.isBidirectional} type="checkbox" id="isBidrectional" name="isBidirectional" value="on"></input>
                 <label htmlFor="isBidirectional">bidirectional</label><br/>
             </div>
