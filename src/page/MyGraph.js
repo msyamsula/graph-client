@@ -2,6 +2,8 @@ import React from "react";
 import GraphInput from "../component/GraphInput";
 import GraphAlgorithm from "../component/GraphAlgorithm";
 import Graph from "../component/Graph";
+import {backendURL} from "../global/utility"
+import { solveDFS } from "../global/apiCall";
 
 
 class MyGraph extends React.Component {
@@ -41,6 +43,9 @@ class MyGraph extends React.Component {
       startNode: null,
       endNode: null
     }
+
+    this.defaultNodeColor = "#D2E5FF"
+    this.defaultEdgeColor = "black"
   }
 
   createNode = (edges) => {
@@ -156,7 +161,6 @@ class MyGraph extends React.Component {
     await this.setState({ edges })
 
     let dom = document.getElementById("inputGraph")
-    console.log(dom);
     dom.scrollTop = dom.scrollHeight
   }
 
@@ -164,7 +168,6 @@ class MyGraph extends React.Component {
     e.preventDefault()
     let edges = structuredClone(this.state.edges)
     edges.pop()
-    console.log(edges);
     await this.setState({ edges })
   }
 
@@ -221,7 +224,7 @@ class MyGraph extends React.Component {
     await this.setState({ graph })
   }
 
-  coloringEdge = async (from, to, color) => {
+  coloringEdge = async (from, to, color, w) => {
     let graph = structuredClone(this.state.graph)
 
     for (let i = 0; i < graph.edges.length; i++) {
@@ -229,41 +232,93 @@ class MyGraph extends React.Component {
         graph.edges[i].color = {
           color
         }
-        graph.edges[i].width = 2
+        graph.edges[i].width = w
       }
 
       if (this.state.isBidirectional && graph.edges[i].from == to && graph.edges[i].to == from) {
         graph.edges[i].color = {
           color
         }
-        graph.edges[i].width = 2
+        graph.edges[i].width = w
       }
     }
     await this.setState({ graph })
 
   }
 
+  validateStart = async (e) => {
+    if (this.state.startNode == "" || this.state.endNode == ""){
+      return false
+    }
+
+    if (this.state.startNode == null || this.state.endNode == null ){
+      return false
+    }
+
+    if (this.state.algo == "" || this.state.algo == null) {
+      return false
+    }
+
+    if (this.state.graph.nodes.length == 0){
+      return false
+    }
+
+    return true
+  }
+
+  timer = (ms) => new Promise(res => setTimeout(res, ms))
+
+
   handleStart = async (e) => {
     e.preventDefault()
     // alert("pleae double check your graph and algo")
+
+    let safe = await this.validateStart()
+    if (!safe){
+      alert("please double check your graph set up")
+      return
+    }
 
     // console.log(this.state.graph);
     // console.log(this.state.startNode);
     // console.log(this.state.endNode);
     // console.log(this.state.algo);
+    // console.log(backendURL);
+    // console.log(this.state.graph);
+    // console.log(this.state.startNode);
+    // console.log(this.state.endNode);
+    // console.log(this.state.algo);
 
-    let path = ["2", "3", "4", "1", "3", "5", "6", "11", "12", "10"]
+    let resp = await solveDFS(this.state.graph, this.state.startNode, this.state.endNode, this.state.algo)
+    let path = resp.path
+    // path = ['6', '11', '12', '10', '#10-12', '#12-11', '#11-6', '5', '2', '3', '4', '1']
+    console.log(path);
+    // let path = ["2", "3", "4", "1", "3", "5", "6", "11", "12", "10"]
     await this.coloringNode(path[0], "red")
     // await this.coloringEdge(path[0], path[1], "red")
 
-    let timer = (ms) => new Promise(res => setTimeout(res, ms))
-
+    let currentNode = path[0]
+    
     let run = async () => {
       for (let i = 1; i < path.length; i++) {
-        await timer(1000)
-        await this.coloringEdge(path[i - 1], path[i], "red")
-        await timer(1000)
+        if (path[i][0] == '#'){
+          let substr = path[i].substring(1, path[i].length)
+          let edges = substr.split('-')
+          let from = edges[1]
+          let to = edges[0]
+          console.log(edges);
+          await this.timer(1000)
+          await this.coloringNode(to, this.defaultNodeColor)
+          await this.timer(1000)
+          await this.coloringEdge(from, to, this.defaultEdgeColor, 1)
+          currentNode = from
+          continue
+        }
+        await this.timer(1000)
+        await this.coloringEdge(currentNode, path[i], "red", 3)
+        await this.timer(1000)
         await this.coloringNode(path[i], "red")
+        currentNode = path[i]
 
       }
     }
@@ -312,7 +367,7 @@ class MyGraph extends React.Component {
       await this.setState({ edges })
     }
 
-    reader.readAsText(file)
+    await reader.readAsText(file)
   }
 
   handleFile = async (e) => {
@@ -323,8 +378,11 @@ class MyGraph extends React.Component {
       alert("please use txt file")
       return
     }
-    this.readFile(file)
+    await this.readFile(file)
+    await this.timer(500)
     e.target.value = null
+    await this.handleCreateGraph(e)
+    
   }
 
   handleBFS = async (e) => {
