@@ -1,0 +1,59 @@
+.graphInput {
+    grid-area: 1/1/3/2;
+}
+
+
+.graphBox {
+    height: 60vh;
+    text-align: center;
+    overflow: scroll;
+    margin-bottom: 20px;
+}
+
+.controlButton {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: 10px;
+    margin: 10px;
+}
+
+.singleEdge {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    height: 10%;
+    row-gap: 5px;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    justify-items: center;
+    /* margin: 2% 0; */
+}
+
+.singleEdge p {
+    margin: 0;
+    height: 100%;
+}
+
+.fromBox {
+    width: 80%;
+    border: 1px solid black;
+    padding: 0px;
+}
+
+.fromBox::placeholder {
+    text-align: center;
+}
+
+.toBox {
+    width: 80%;
+    border: 1px solid black;
+    padding: 0px;
+}
+
+.toBox::placeholder {
+    text-align: center;
+}
+
+.pleaseEnterYourGraph {
+    text-align: center;
+}

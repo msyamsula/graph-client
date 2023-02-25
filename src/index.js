@@ -9,7 +9,6 @@ import {
   Routes,
   Route
 } from "react-router-dom"
-import Graph from './component/Graph';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
